@@ -85,16 +85,18 @@
 
 ## 4. 자율성 체계
 
-### Glasswing 5단계
-| 단계 | 역할 | 설명 |
-|------|------|------|
-| Stage 1 | Operator | 모든 외부 액션 승인 필요 |
-| Stage 2 | Collaborator | 반복 액션 승인 면제 |
-| Stage 3 | Consultant | 주요 결정만 승인 |
-| Stage 4 | Approver | 위험 액션만 승인 |
-| Stage 5 | Observer | 거의 완전 자율 |
+### Glasswing 5단계 × HOTL 매핑
 
-- 자율성 단계 상향: 위진수 최종 승인 (Board+CFO 분석 → 위진수 판단)
+| Glasswing | 자율 처리 | 담당 Human | 위진수 |
+|-----------|---------|-----------|------|
+| Stage 1 (Operator) | 낮음만 | 중간·높음 | 절대 승인 |
+| Stage 2 (Collaborator) | 낮음 + 반복 중간 | 높음 | 절대 승인 |
+| Stage 3 (Consultant) | 낮음 + 중간 | 높음만 | 절대 승인 |
+| Stage 4 (Approver) | 낮음·중간·높음 | — | 절대 승인 |
+| Stage 5 (Observer) | 낮음·중간·높음 | — | 절대 승인 |
+
+- 절대 승인: Glasswing 단계 무관, 항상 위진수 직접
+- 단계 상향: Board+CFO 분석 → 위진수 최종 승인
 
 ### HOTL (Human-on-the-Loop) 위급도 라우팅
 ```
