@@ -77,13 +77,16 @@ Company CFO → System CFO (재무 보고)
 - **CEO Interface** (AI → Human 전환 가능)
 - **Company CFO Interface** (AI → Human 전환 가능, 최초부터 존재)
 - **Company Auditor** (Board 직속 독립 — CEO/CFO 목표 공유 금지)
-- **Company state.md** (고객, 계약, 업종, 단계, 자산 — CEO/CFO 교체 시에도 유지)
+- **Human Manager** (선택적 — CEO가 고용 요청, 위진수 절대 승인 필요. 목록은 Company state.md 보관)
+- **Company state.md** (고객, 계약, 업종, 단계, 자산, Human Manager 목록 — CEO/CFO 교체 시에도 유지)
 
 ### Hermes
-- 모든 에이전트의 DeepSeek API 키 중앙 관리
+- 모든 에이전트의 DeepSeek API 키 중앙 관리 (System Auditor 제외)
 - 에이전트별 모델 라우팅 (추후 차등 적용)
 - Circuit Breaker: 장애 감지 → 해당 에이전트 격리 → 복구 후 재연결
 - 컨텍스트 압축 담당
+- **RAG 데이터 파이프라인**: 외부 데이터 소스 조회 중계 (재무 결정 시 실제 데이터 제공)
+  - 에이전트가 RAG 조회 요청 → Hermes가 외부 소스 조회 → 원본 데이터 반환
 
 ---
 
@@ -144,7 +147,8 @@ Company CFO → System CFO (재무 보고)
 ```
 창업
   → CEO: 성향 랜덤 부여, 업종 선택 (Board 중복 체크)
-  → Company CFO: System CFO에 초기 자금 결재
+  → System CFO: 가용 자본 × 배분율로 초기 자금 산출 → Board 승인
+  → Company CFO: 승인된 초기 자금 수령 (배분율 수치는 세부 설계에서 확정)
   → 실행 (내부 작업 자유 / 외부 액션 승인)
   → 성장 임계값 도달
        ↓
@@ -167,7 +171,9 @@ Company CFO → System CFO (재무 보고)
 ### 실패 루프
 ```
 실패 감지 (Company CFO → System CFO, 논문 기반 공식)
-  → Company Auditor → System Auditor 집계
+  → Company Auditor → Board (직접 보고)
+                    → System Auditor (집계용 사본)
+  → System Auditor → Board (거시적 집계 보고)
   → Board → 담당 Human 집계 보고서
   → 승인
        ↓
@@ -193,7 +199,9 @@ Company CFO → System CFO (재무 보고)
 
 ### CEO
 - 성향: 랜덤 부여 (장인형/해커형/분석가형 — 논문 기반)
-- 업종: Board 중복 체크 후 선택
+  - 성향이 영향을 주는 영역: 업종 선호도, 의사결정 속도, 리스크 허용도, Exit 타이밍 판단
+  - 세부 수치 및 가중치는 세부 설계에서 논문 기반 확정
+- 업종: Board 중복·분산 규칙 검증 후 최종 승인
 - state.md: 창업마다 새로 시작 (회고 요약만 반영)
 - 회고: 자기 자신의 회고만 참조 (경험 격리 원칙 유지)
 - 동일 Agent가 계속 운영 (경험 축적)
@@ -262,8 +270,13 @@ System CFO > Company CFO (재무 관련 항상)
 ### 시작 (Bootstrap)
 ```
 위진수 → bootstrap.py (수동 1회)
-  → Hermes → System Auditor → Board → System CFO 순으로 시작
-  → 이후 자동 운영
+  → 위진수: 초기 업종 DB (Tier 0 목록) + Exit Channel 플랫폼 목록 수동 입력
+  → System Auditor (자체 직접 API 접근 — Hermes 이전 시작, 독립 유지)
+  → Hermes → Board → System CFO 순으로 시작
+  → 이후 자동 운영 (업종 DB는 Meta-Learning으로 자동 갱신)
+
+주의: System Auditor는 Hermes를 통하지 않고 직접 API 호출
+     (Hermes 독립 감시 전제 조건)
 ```
 
 ### 종료 순서
@@ -272,9 +285,10 @@ System CFO > Company CFO (재무 관련 항상)
 2. 외부 액션 승인 중단
 3. 진행 중인 외부 계약 → 위진수 판단
 4. Human Manager 해고 → 위진수 직접
-5. 각 CEO/CFO 회고 작성
+5. 각 CEO/CFO 회고 작성 (독립 단계 — 완료 확인 후 진행)
 6. System CFO 최종 정산 보고
-7. Hermes → System Auditor 순으로 종료
+7. Board → System CFO → Hermes 순으로 종료
+8. System Auditor 마지막 종료 (전 과정 감시 후 종료)
 ```
 
 ---
@@ -300,6 +314,9 @@ System CFO > Company CFO (재무 관련 항상)
 
 표준 KPI 보고 형식으로 위진수에게 집계
 위진수는 절대 승인 + 고수준 판단만
+
+인프라 원칙: 각 ACS = 독립 Hermes·System Auditor (SPOF 방지 우선)
+             공유 인프라는 충분한 검증 후 추후 옵션으로 검토
 ```
 
 ---
@@ -366,7 +383,8 @@ System CFO > Company CFO (재무 관련 항상)
 System CFO: 가용 자본 변화 시
   → 최소자본 ≤ 가용자본 필터링
   → Board에 갱신 목록 전달 (자동)
-Board: 갱신된 목록 안에서 CEO 업종 배정 (중복 체크)
+CEO: 가용 목록에서 성향 기반 업종 선택 → Board 제출
+Board: 중복 체크 + 분산 규칙 검증 → 승인 or 재선택 요청
 ```
 
 ### Tier 0 (부트스트랩)
