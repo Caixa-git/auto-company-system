@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Caixa-git/auto-company-system/schemas/message.json",
+  "title": "ACS Message Schema",
+  "description": "Auto-Company-System 에이전트 간 통신 표준 메시지 포맷. FIPA ACL (FIPA, 2002) 기반.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": [
+    "message_id",
+    "sender",
+    "receiver",
+    "type",
+    "timestamp",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "description": "이 메시지가 따르는 스키마 버전. semver 포맷 (major.minor.patch).",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0",
+      "examples": ["1.0.0", "1.1.0", "2.0.0"]
+    },
+    "message_id": {
+      "description": "메시지 고유 식별자. UUID v4. 멱등성 보장용.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "examples": ["a1b2c3d4-e5f6-4789-8abc-def012345678"]
+    },
+    "sender": {
+      "description": "발신 에이전트 식별자. '{agent_type}:{company_id}' 형식. company_id는 회사 소속 에이전트만 필수.",
+      "type": "string",
+      "pattern": "^(system_auditor|board|system_cfo|hermes|ceo|cfo|company_auditor)(:[A-Z0-9_]+)?$",
+      "examples": ["ceo:C_001", "board", "system_cfo", "cfo:C_001"]
+    },
+    "receiver": {
+      "description": "수신 에이전트 식별자 (단일). broadcast는 허용 안 함 — 모든 수신자는 명시되어야 함.",
+      "type": "string",
+      "pattern": "^(system_auditor|board|system_cfo|hermes|ceo|cfo|company_auditor|human)(:[A-Z0-9_]+)?$",
+      "examples": ["board", "system_cfo", "human"]
+    },
+    "type": {
+      "description": "메시지 유형. 상세 유형 카탈로그는 docs/message-catalog.md 참조.",
+      "type": "string",
+      "enum": [
+        "financial_report",
+        "anomaly_report",
+        "approval_request",
+        "escalation",
+        "retrospective",
+        "portfolio_review",
+        "heartbeat",
+        "error",
+        "command",
+        "response"
+      ]
+    },
+    "timestamp": {
+      "description": "메시지 생성 시각. ISO 8601, KST (+09:00). UTC로 저장 시 Z 접미사 사용.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+      "examples": ["2026-05-11T06:00:00+09:00", "2026-05-11T06:00:00Z"]
+    },
+    "payload": {
+      "description": "메시지 본문. type별 구조는 type-{type}-schema.json 참조. 원본 데이터 직접 포함 (요약 금지).",
+      "type": "object",
+      "properties": {
+        "urgency": {
+          "description": "HOTL 위급도. 낮음=Board 자율, 중간=담당Human 알림+타임아웃→자동처리, 높음=담당Human 응답필수+대기, 절대=위진수 직접",
+          "type": "string",
+          "enum": ["low", "medium", "high", "absolute"]
+        },
+        "body": {
+          "description": "메시지 본문 내용. type별 필수/선택 필드는 catalog에서 정의.",
+          "type": "object"
+        },
+        "attachments": {
+          "description": "참조 데이터 목록. 요약 금지 — 원본 데이터 직접 첨부. 정보 왜곡 방지 (MAST 2025).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "content"],
+            "properties": {
+              "name": { "type": "string" },
+              "content": { "type": "object" },
+              "content_type": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["body"]
+    }
+  },
+  "allOf": [
+    {
+      "description": "에스컬레이션 메시지는 payload.urgency 필드 필수",
+      "if": { "properties": { "type": { "const": "escalation" } } },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["urgency"],
+            "properties": {
+              "urgency": { "enum": ["medium", "high", "absolute"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "에러 메시지에는 error_code 필수",
+      "if": { "properties": { "type": { "const": "error" } } },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["error_code"],
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "pattern": "^ERR_\\d{4}$",
+                "examples": ["ERR_0001", "ERR_1002"]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
