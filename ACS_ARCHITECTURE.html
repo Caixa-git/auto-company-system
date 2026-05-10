@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-Company-System — 큰 그림 설계</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; line-height: 1.6; }
+
+  .header { background: linear-gradient(135deg, #1a1f2e, #2d3561); padding: 40px; text-align: center; border-bottom: 2px solid #3d4fd4; }
+  .header h1 { font-size: 2.2rem; color: #7c8fff; letter-spacing: 2px; }
+  .header p { color: #9aa0c0; margin-top: 8px; font-size: 0.95rem; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+  .section { margin-bottom: 50px; }
+  .section-title { font-size: 1.3rem; color: #7c8fff; border-left: 4px solid #3d4fd4; padding-left: 14px; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* 계층 구조 */
+  .hierarchy { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .tier { display: flex; justify-content: center; width: 100%; position: relative; }
+  .node { background: #1e2235; border: 2px solid #3d4fd4; border-radius: 10px; padding: 12px 24px; text-align: center; position: relative; }
+  .node.meta { border-color: #f0a500; background: #2a2010; color: #f0a500; font-weight: bold; font-size: 1rem; }
+  .node.human { border-color: #4caf50; background: #102010; color: #4caf50; }
+  .node.system { border-color: #7c8fff; background: #1a1f35; color: #7c8fff; }
+  .node.company { border-color: #e064a0; background: #2a1020; color: #e064a0; min-width: 160px; }
+  .node.hermes { border-color: #ff8c00; background: #2a1800; color: #ff8c00; }
+  .connector { width: 2px; height: 30px; background: #3d4fd4; margin: 0 auto; }
+  .h-connector { display: flex; align-items: center; justify-content: center; gap: 0; }
+  .h-line { height: 2px; background: #3d4fd4; flex: 1; max-width: 200px; }
+
+  /* 회사 그리드 */
+  .company-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .company-card { background: #1a1020; border: 2px solid #e064a0; border-radius: 10px; padding: 16px; }
+  .company-card h4 { color: #e064a0; margin-bottom: 10px; font-size: 0.95rem; }
+  .company-card .role { background: #2a1535; border-radius: 6px; padding: 6px 10px; margin: 4px 0; font-size: 0.82rem; color: #c0a0d0; display: flex; align-items: center; gap: 8px; }
+  .company-card .role span.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-ceo { background: #7c8fff; }
+  .dot-cfo { background: #4caf50; }
+  .dot-auditor { background: #ff8c00; }
+  .dot-state { background: #f0a500; }
+
+  /* 카드 그리드 */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .card { background: #1a1f2e; border: 1px solid #2d3561; border-radius: 12px; padding: 20px; }
+  .card h4 { color: #7c8fff; margin-bottom: 12px; font-size: 1rem; }
+  .card ul { list-style: none; }
+  .card ul li { padding: 4px 0; font-size: 0.85rem; color: #b0b8d0; border-bottom: 1px solid #232840; }
+  .card ul li:last-child { border-bottom: none; }
+  .card ul li::before { content: "→ "; color: #3d4fd4; }
+
+  /* 루프 */
+  .loop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .loop-box { background: #1a1f2e; border-radius: 12px; padding: 20px; }
+  .loop-box.success { border: 2px solid #4caf50; }
+  .loop-box.fail { border: 2px solid #f44336; }
+  .loop-box h4 { margin-bottom: 14px; font-size: 1rem; }
+  .loop-box.success h4 { color: #4caf50; }
+  .loop-box.fail h4 { color: #f44336; }
+  .step { background: #232840; border-radius: 6px; padding: 8px 12px; margin: 6px 0; font-size: 0.83rem; color: #c0c8e0; display: flex; align-items: center; gap: 8px; }
+  .step-arrow { color: #3d4fd4; font-size: 0.9rem; text-align: center; margin: 2px 0; }
+  .branch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0; }
+  .branch-item { background: #1a2835; border-radius: 6px; padding: 8px 10px; font-size: 0.78rem; color: #90c0e0; border: 1px solid #2d4561; }
+
+  /* 자율성 테이블 */
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #2d3561; color: #7c8fff; padding: 10px 14px; text-align: left; font-size: 0.85rem; }
+  td { padding: 9px 14px; border-bottom: 1px solid #232840; font-size: 0.83rem; color: #b0b8d0; }
+  tr:hover td { background: #1e2340; }
+
+  /* 절대 승인 */
+  .approval-list { display: flex; flex-wrap: wrap; gap: 10px; }
+  .approval-item { background: #2a1010; border: 1px solid #f44336; border-radius: 20px; padding: 6px 16px; font-size: 0.82rem; color: #ff8080; }
+
+  /* HOTL */
+  .hotl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .hotl-item { border-radius: 10px; padding: 14px; text-align: center; }
+  .hotl-item.low { background: #0d2010; border: 1px solid #4caf50; }
+  .hotl-item.mid { background: #2a1800; border: 1px solid #ff8c00; }
+  .hotl-item.high { background: #2a0a0a; border: 1px solid #f44336; }
+  .hotl-item .level { font-weight: bold; margin-bottom: 6px; font-size: 0.9rem; }
+  .hotl-item.low .level { color: #4caf50; }
+  .hotl-item.mid .level { color: #ff8c00; }
+  .hotl-item.high .level { color: #f44336; }
+  .hotl-item p { font-size: 0.78rem; color: #b0b0b0; }
+
+  /* 예외 처리 */
+  .exception-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .exception-item { background: #1a1f2e; border-left: 3px solid #7c8fff; border-radius: 6px; padding: 12px 16px; }
+  .exception-item .trigger { color: #e064a0; font-size: 0.82rem; font-weight: bold; margin-bottom: 4px; }
+  .exception-item .action { color: #9aa0c0; font-size: 0.8rem; }
+
+  /* 미래 확장 */
+  .future-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .future-box { background: #1a1f2e; border-radius: 12px; padding: 20px; border: 1px solid #2d3561; }
+  .future-box h4 { color: #9aa0c0; margin-bottom: 12px; font-size: 0.9rem; }
+  .future-box.next h4 { color: #7c8fff; }
+
+  /* State 테이블 */
+  .state-badge { background: #1a1f35; border: 1px solid #3d4fd4; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; color: #7c8fff; margin: 2px; display: inline-block; }
+
+  @media (max-width: 700px) {
+    .loop-grid, .future-grid, .hotl-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Auto-Company-System</h1>
+  <p>AI 에이전트가 자율적으로 회사를 창업·운영·Exit하는 시스템 — 큰 그림 설계</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 계층 구조 -->
+  <div class="section">
+    <div class="section-title">1. 전체 계층 구조</div>
+    <div class="hierarchy">
+      <div class="tier"><div class="node meta">위진수 (Meta-level)<br><span style="font-size:0.72rem; color:#c08020;">절대 승인 직접 처리 · 현재 = 담당 Human 겸직</span></div></div>
+      <div class="connector"></div>
+      <div class="tier">
+        <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap; justify-content:center;">
+          <div class="node human">담당 Human</div>
+          <div class="node" style="border-color:#f0a500; background:#2a1800; color:#f0a500; font-size:0.8rem;">💳 Financial Gateway<br><span style="font-size:0.72rem; color:#a07030;">(위진수 명의 · 이중화 필요)</span></div>
+          <div class="node" style="border-color:#4caf50; background:#0d2010; color:#4caf50; font-size:0.8rem;">🚪 Exit Channel<br><span style="font-size:0.72rem; color:#306030;">(위진수 승인 플랫폼 목록)</span></div>
+        </div>
+      </div>
+      <div class="connector"></div>
+      <div class="tier">
+        <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; justify-content:center;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+            <div class="node system">System Auditor</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+            <div class="node system">Board</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+            <div class="node system">System CFO</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+            <div class="node company" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; padding:12px;">
+              <span>Company A</span><span>Company B</span><span>Company N...</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div class="node hermes">Hermes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Company 내부 구조 -->
+  <div class="section">
+    <div class="section-title">2. Company 내부 구조</div>
+    <div class="company-grid">
+      <div class="company-card">
+        <h4>Company A (예시)</h4>
+        <div class="role"><span class="dot dot-ceo"></span>CEO Interface (AI → Human 전환 가능)</div>
+        <div class="role"><span class="dot dot-cfo"></span>Company CFO Interface (AI → Human 전환 가능)</div>
+        <div class="role"><span class="dot dot-auditor"></span>Company Auditor (Board 직속 독립 — CEO/CFO 목표 공유 금지)</div>
+        <div class="role"><span class="dot dot-state"></span>Company state.md (CEO/CFO 교체 시에도 유지)</div>
+      </div>
+      <div class="company-card">
+        <h4>Company state.md 내용</h4>
+        <div class="role"><span class="dot dot-state"></span>고객 현황</div>
+        <div class="role"><span class="dot dot-state"></span>진행 중인 계약</div>
+        <div class="role"><span class="dot dot-state"></span>업종 / 단계</div>
+        <div class="role"><span class="dot dot-state"></span>자산 현황</div>
+        <div class="role"><span class="dot dot-state"></span>Human Manager 목록</div>
+      </div>
+      <div class="company-card">
+        <h4>결정권 위계</h4>
+        <div class="role"><span class="dot dot-ceo"></span>사업 결정 → CEO 우선</div>
+        <div class="role"><span class="dot dot-cfo"></span>재무 결정 → CFO 우선</div>
+        <div class="role"><span class="dot dot-auditor"></span>충돌 시 → Board 최종 중재</div>
+        <div class="role"><span class="dot dot-state"></span>System CFO > Company CFO (재무)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. LLM 설정 -->
+  <div class="section">
+    <div class="section-title">3. LLM 설정</div>
+    <div class="card-grid">
+      <div class="card">
+        <h4>현재</h4>
+        <ul>
+          <li>모든 에이전트 → DeepSeek V4 Flash</li>
+          <li>API 키 → Hermes 중앙 관리</li>
+          <li>Circuit Breaker 내장</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>추후</h4>
+        <ul>
+          <li>에이전트별 모델 차등 (Hermes 라우팅)</li>
+          <li>자본 증가 시 고성능 모델 업그레이드</li>
+          <li>대체 모델 추가 (장애 대비)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 자율성 체계 -->
+  <div class="section">
+    <div class="section-title">4. 자율성 체계</div>
+    <table style="margin-bottom:20px;">
+      <tr><th>단계</th><th>역할</th><th>설명</th></tr>
+      <tr><td>Stage 1</td><td>Operator</td><td>모든 외부 액션 승인 필요</td></tr>
+      <tr><td>Stage 2</td><td>Collaborator</td><td>반복 액션 승인 면제</td></tr>
+      <tr><td>Stage 3</td><td>Consultant</td><td>주요 결정만 승인</td></tr>
+      <tr><td>Stage 4</td><td>Approver</td><td>위험 액션만 승인</td></tr>
+      <tr><td>Stage 5</td><td>Observer</td><td>거의 완전 자율</td></tr>
+    </table>
+
+    <div class="section-title" style="font-size:1rem; margin-bottom:14px;">HOTL 위급도 라우팅</div>
+    <div class="hotl-grid" style="margin-bottom:24px;">
+      <div class="hotl-item low"><div class="level">낮음</div><p>Board 자율 처리</p></div>
+      <div class="hotl-item mid"><div class="level">중간</div><p>담당 Human 알림 + 타임아웃 → 자동 처리</p></div>
+      <div class="hotl-item high"><div class="level">높음</div><p>담당 Human 응답 필수 + 대기 모드</p></div>
+      <div class="hotl-item" style="background:#1a0a2a; border:1px solid #f0a500;"><div class="level" style="color:#f0a500;">절대 승인</div><p style="color:#c08020;">위진수 직접<br>(HOTL 최상위)</p></div>
+    </div>
+
+    <div class="section-title" style="font-size:1rem; margin-bottom:14px;">절대 승인 목록 (Glasswing 단계 무관)</div>
+    <div class="approval-list">
+      <div class="approval-item">Exit (매각)</div>
+      <div class="approval-item">Human CEO 전환</div>
+      <div class="approval-item">Human CFO 전환</div>
+      <div class="approval-item">Human CEO/CFO 자발적 퇴직</div>
+      <div class="approval-item">대규모 투자</div>
+      <div class="approval-item">Human Manager 고용/해고</div>
+      <div class="approval-item">새 시스템 Bootstrap</div>
+      <div class="approval-item">시스템 전체 종료</div>
+    </div>
+  </div>
+
+  <!-- 5. 운영 루프 -->
+  <div class="section">
+    <div class="section-title">5. 운영 루프</div>
+    <div class="loop-grid">
+      <div class="loop-box success">
+        <h4>성공 루프</h4>
+        <div class="step">창업 시작 (CEO 성향 랜덤, 업종 선택)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">Company CFO → System CFO 초기 자금 결재</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">실행 (내부 자유 / 외부 승인)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">성장 임계값 도달</div>
+        <div class="step-arrow">↓</div>
+        <div class="branch">
+          <div class="branch-item">A) Exit (매각)<br>→ CFO 수익 수령<br>→ 재투자</div>
+          <div class="branch-item">B) Human CEO 전환<br>→ 회사 유지<br>→ 인수인계</div>
+        </div>
+        <div class="step-arrow">↓</div>
+        <div class="step">CEO/CFO 회고 작성 → 다음 창업</div>
+        <div class="step-arrow">↓</div>
+        <div class="step" style="background:#0d2535; border:1px solid #3d7fff; color:#7cb8ff;">🧠 System CFO 포트폴리오 회고<br><span style="font-size:0.75rem; color:#5090c0;">업종 DB 갱신 → Board 분산 규칙 재조정 (Meta-Learning)</span></div>
+      </div>
+
+      <div class="loop-box fail">
+        <h4>실패 루프</h4>
+        <div class="step">실패 감지 (Company CFO → System CFO)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">Company Auditor → System Auditor 집계</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">Board → 담당 Human 집계 보고서</div>
+        <div class="step-arrow">↓</div>
+        <div class="branch">
+          <div class="branch-item">동결<br>(타임아웃 대기)</div>
+          <div class="branch-item">즉시 종료</div>
+        </div>
+        <div class="step-arrow">↓</div>
+        <div class="step">CEO/CFO 회고 (실패 원인 분석)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">다음 창업 (교훈 반영)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. CEO/CFO 생명주기 -->
+  <div class="section">
+    <div class="section-title">6. CEO / CFO 생명주기</div>
+    <div class="card-grid">
+      <div class="card">
+        <h4>CEO</h4>
+        <ul>
+          <li>성향: 랜덤 부여 (장인/해커/분석가형)</li>
+          <li>동일 Agent가 계속 운영 (경험 축적)</li>
+          <li>state.md: 창업마다 새로 시작 (회고 요약만 반영)</li>
+          <li>회고: 자기 자신의 회고만 참조 (경험 격리 원칙)</li>
+          <li>타 CEO 회고 원본 직접 접근 금지</li>
+          <li>Board가 익명 패턴만 추출 → 업종 DB 반영</li>
+          <li>연속 실패 N회 → 은퇴 권고 → 위진수 승인</li>
+          <li>은퇴 시 회사 유지 → 새 CEO 투입</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Company CFO</h4>
+        <ul>
+          <li>최초 창업부터 존재 (CEO 겸직 X)</li>
+          <li>예산 관리, 비용 추적, System CFO 보고</li>
+          <li>회고: 창업마다 재무 회고 작성</li>
+          <li>CEO 은퇴 시: 성과 기반 유지(B) or 교체(A)</li>
+          <li>AI → Human 전환 가능</li>
+          <li>폐업 시 CEO와 함께 종료</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>폐업 vs CEO 은퇴</h4>
+        <ul>
+          <li>폐업 항상 우선 처리</li>
+          <li>CEO 은퇴: 회사 유지, 새 CEO 투입</li>
+          <li>회사 폐업: CEO/CFO 모두 종료</li>
+          <li>동시 발생 → 폐업 프로세스 먼저</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. State 관리 -->
+  <div class="section">
+    <div class="section-title">7. State 관리</div>
+    <table>
+      <tr><th>구성요소</th><th>state.md 내용</th><th>비고</th></tr>
+      <tr><td>System Auditor</td><td>이상 목록 집계</td><td>집계만 담당</td></tr>
+      <tr><td>Board</td><td>CEO 포인터, 승인 큐, 업종 목록, 분산 규칙</td><td>핵심 요약만 · Exit Channel 참조</td></tr>
+      <tr><td>System CFO</td><td>자본 현황, 상한선, 성과 추적, 업종별 성공률, 회고</td><td>Meta-Learning Loop 담당 · 포트폴리오 회고마다 업종 DB 갱신</td></tr>
+      <tr><td>Company state.md</td><td>고객, 계약, 업종, 단계, 자산</td><td>CEO/CFO 교체 시에도 유지</td></tr>
+      <tr><td>CEO state.md</td><td>창업 목표, 진행 현황</td><td>창업마다 새로 시작, 회고 요약 반영</td></tr>
+      <tr><td>Company CFO state.md</td><td>재무 이력, 예산 현황</td><td>창업마다 재무 회고 작성</td></tr>
+    </table>
+  </div>
+
+  <!-- 8. 예외 처리 -->
+  <div class="section">
+    <div class="section-title">8. 예외 처리</div>
+    <div class="exception-grid">
+      <div class="exception-item">
+        <div class="trigger">DeepSeek API 다운</div>
+        <div class="action">Hermes 감지 → 위급도 판단 → 대기 모드 → 위진수 긴급 보고</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">Hermes 장애</div>
+        <div class="action">Circuit Breaker → 에이전트 격리 → 복구 후 자동 재연결</div>
+      </div>
+      <div class="exception-item" style="border-left-color:#f0a500;">
+        <div class="trigger" style="color:#f0a500;">Financial Gateway 장애</div>
+        <div class="action">System CFO 감지 → 수익 수령 중단 → 위진수 긴급 알림 (이중화 필요)</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">담당 Human 부재</div>
+        <div class="action">HOTL 위급도 라우팅 → 위급도별 자동 처리</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">담당 Human 교체</div>
+        <div class="action">Board/CFO state.md → 온보딩 문서 자동 생성</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">자본 소진</div>
+        <div class="action">CFO 긴급 보고 → 위진수: 추가 투입 or 시스템 종료</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">CEO 무한 실패</div>
+        <div class="action">CFO 성과 추적 → 은퇴 권고 → 위진수 최종 승인</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">CEO 은퇴 + 폐업 동시</div>
+        <div class="action">폐업 항상 우선 → 폐업 프로세스 → CEO/CFO 종료</div>
+      </div>
+      <div class="exception-item">
+        <div class="trigger">위진수 장기 부재</div>
+        <div class="action">HOTL 라우팅 → 낮음: 자율 / 높음: 대기 모드</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 시작/종료 -->
+  <div class="section">
+    <div class="section-title">9. 시스템 시작 / 종료</div>
+    <div class="card-grid">
+      <div class="card">
+        <h4>Bootstrap (최초 1회 수동)</h4>
+        <ul>
+          <li>위진수 → bootstrap.py 실행</li>
+          <li>Hermes 시작</li>
+          <li>System Auditor 시작</li>
+          <li>Board 시작</li>
+          <li>System CFO 시작</li>
+          <li>이후 자동 운영</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>종료 순서</h4>
+        <ul>
+          <li>1. 신규 CEO/CFO 생성 중단</li>
+          <li>2. 외부 액션 승인 중단</li>
+          <li>3. 진행 중 계약 → 위진수 판단</li>
+          <li>4. Human Manager 해고 → 위진수 직접</li>
+          <li>5. CEO/CFO 회고 작성</li>
+          <li>6. System CFO 최종 정산 보고</li>
+          <li>7. Hermes → System Auditor 순 종료</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 미래 확장 -->
+  <div class="section">
+    <div class="section-title">10. 미래 확장</div>
+    <div class="future-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="future-box">
+        <h4>현재 — 위진수 1인 겸직</h4>
+        <div class="step" style="color:#f0a500;">위진수 = 담당 Human</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">절대 승인 + 일상 감독 직접</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">Auto-Company-System</div>
+      </div>
+      <div class="future-box next">
+        <h4>위임 단계</h4>
+        <div class="step" style="color:#f0a500;">위진수 (절대 승인만)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">담당 Human (위임 · 일상 감독)</div>
+        <div class="step-arrow">↓</div>
+        <div class="step">Auto-Company-System</div>
+      </div>
+      <div class="future-box next">
+        <h4>다중 ACS</h4>
+        <div class="step" style="color:#f0a500;">위진수 (Meta-level)</div>
+        <div class="step-arrow">↓</div>
+        <div class="branch">
+          <div class="branch-item">Human A<br>System A</div>
+          <div class="branch-item">Human B<br>System B</div>
+        </div>
+        <div class="step" style="margin-top:8px;">표준 KPI 집계 보고</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. 구조적 리스크 대응 -->
+  <div class="section">
+    <div class="section-title">11. 구조적 리스크 대응 (논문 기반)</div>
+    <div style="color:#4a5070; font-size:0.78rem; margin-bottom:16px;">출처: MAST 2025 · LLM Hallucination Survey 2025 · Federated Learning (McMahan et al., 2017)</div>
+    <div class="card-grid">
+      <div class="card" style="border-color:#f44336;">
+        <h4 style="color:#f44336;">리스크 1 — 환각 (금융 결정)</h4>
+        <ul>
+          <li>LLM 금융 수치/시장 분석 환각 발생률 높음</li>
+          <li>모든 재무 결정 → RAG 기반 실제 데이터 조회</li>
+          <li>Company Auditor 재무 계산 독립 검증</li>
+          <li>데이터 없으면 추측 금지 → 에스컬레이션</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:#ff8c00;">
+        <h4 style="color:#ff8c00;">리스크 2 — 에이전트 간 정보 왜곡</h4>
+        <ul>
+          <li>멀티에이전트 1순위 실패 원인 (MAST 2025)</li>
+          <li>에이전트 간 통신 표준 메시지 포맷 강제</li>
+          <li>요약 금지 · 원본 데이터 첨부 의무화</li>
+          <li>CEO → Board → System CFO 체인 원본 보존</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:#e064a0;">
+        <h4 style="color:#e064a0;">리스크 3 — CEO-CFO 담합</h4>
+        <ul>
+          <li>같은 목표 공유 에이전트의 잘못된 정렬</li>
+          <li>Company Auditor = Board 직속 독립</li>
+          <li>CEO/CFO 목표 공유 금지 · 별도 평가 지표</li>
+          <li>실패 보고 지연/축소 감지 로직</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:#7c8fff;">
+        <h4 style="color:#7c8fff;">리스크 4 — 성과 벤치마크 부재</h4>
+        <ul>
+          <li>명확한 성공 기준 없으면 방향성 상실</li>
+          <li>KPI 없이 운영 시작 금지</li>
+          <li>CEO 은퇴 조건 N회 · 임계값 X% 논문 기반 확정</li>
+          <li>세부 설계 단계에서 수치 확정 필수</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. 업종 시스템 -->
+  <div class="section">
+    <div class="section-title">12. 업종 시스템</div>
+    <div style="background:#0d1f0d; border:1px solid #1a4d1a; border-radius:12px; padding:16px 20px; margin-bottom:20px; color:#4caf50; font-size:0.85rem;">
+      ⚡ 철학: 자본이 쌓이면 System CFO가 자동으로 접근 가능 업종 범위 재계산. 위진수 승인 불필요. <strong>자동화가 이 프로젝트의 핵심 철학.</strong>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div style="background:#1a1f2e; border-radius:12px; padding:20px; border:1px solid #2d3561;">
+        <div style="color:#7c8fff; font-weight:bold; margin-bottom:12px;">업종 속성 기반 필터링</div>
+        <div style="font-family:monospace; font-size:0.78rem; color:#9aa0c0; line-height:1.8;">
+          각 업종 = {<br>
+          &nbsp;&nbsp;최소자본: 원,<br>
+          &nbsp;&nbsp;인력필요: bool,<br>
+          &nbsp;&nbsp;디지털: bool,<br>
+          &nbsp;&nbsp;규제: bool,<br>
+          &nbsp;&nbsp;<span style="color:#f0a500;">매각가능: bool,</span><br>
+          &nbsp;&nbsp;예상회수기간: 기간<br>
+          }<br><br>
+          System CFO: 가용 자본 변화 시<br>
+          &nbsp;&nbsp;→ 최소자본 ≤ 가용자본 필터링<br>
+          &nbsp;&nbsp;→ Board에 갱신 목록 전달 (자동)<br>
+          Board: 갱신 목록 안에서 업종 배정
+        </div>
+      </div>
+      <div style="background:#1a1000; border-radius:12px; padding:20px; border:2px solid #f0a500;">
+        <div style="color:#f0a500; font-weight:bold; margin-bottom:12px;">🚀 Tier 0 — 부트스트랩</div>
+        <div style="font-size:0.85rem; color:#c8a060; line-height:1.8;">
+          <div>최소자본: <strong style="color:#f0a500;">0원</strong></div>
+          <div>위진수 부담: API 토큰만</div>
+          <div style="margin-top:8px; color:#9aa0c0; font-size:0.78rem;">예시: 프롬프트 판매 · AI 콘텐츠 생성<br>정보 중개 · 자동화 스크립트</div>
+          <div style="margin-top:12px; font-family:monospace; font-size:0.75rem; color:#4caf50;">
+            Tier 0 수익 → System CFO<br>
+            → 자본 누적 → 상위 업종 자동 개방
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; color:#4a5070; font-size:0.8rem; margin-top:40px; padding-bottom:40px;">
+    세부 설계 (프롬프트, 공식, 임계값)는 별도 문서에서 논문 기반으로 확정
+  </div>
+
+</div>
+</body>
+</html>
