@@ -13,18 +13,18 @@
         ├── 담당 Human (현재 = 위진수 / 추후 위임 가능)
         ├── Financial Gateway (위진수 명의 — 이중화 필요)
         │     위진수 투입: 회사 자본 + ACS 운영 예산 (별도 계정)
-        └── Exit Channel (위진수 승인 플랫폼 목록 — Board 참조)
-              └── Auto-Company-System
-                    ├── System Auditor
-                    ├── Board
-                    ├── System CFO Interface  ← Financial Gateway 접근 (읽기/수령만)
-                    ├── Company A
-                    │     ├── CEO Interface   ← Financial Gateway 직접 접근 불가
-                    │     ├── Company CFO Interface
-                    │     ├── Company Auditor (Board 직속 독립)
-                    │     └── Company state.md
-                    ├── Company B ...
-                    └── Hermes
+        ├── Exit Channel (위진수 승인 플랫폼 목록 — Board 참조)
+        └── Auto-Company-System
+              ├── System Auditor  ← Hermes 외부 감시 담당 (독립 실행)
+              ├── Board
+              ├── System CFO Interface  ← Financial Gateway 접근 (읽기/수령만)
+              ├── Company A
+              │     ├── CEO Interface   ← Financial Gateway 직접 접근 불가
+              │     ├── Company CFO Interface
+              │     ├── Company Auditor (Board 직속 독립)
+              │     └── Company state.md
+              ├── Company B ...
+              └── Hermes (Circuit Breaker 내장 — System Auditor가 외부 감시)
 ```
 
 ---
@@ -34,6 +34,7 @@
 ### System Auditor
 - Board, Hermes, 각 회사 전체 상태 감시 (거시적)
 - Company Auditor 보고를 집계만 담당 (직접 감시 X)
+- **Hermes 외부 감시 (Watchdog)**: Hermes와 독립 실행 — Hermes 장애 시 유일한 감지 주체
 - state.md: 이상 목록 집계
 - 확장성: 회사 N개가 돼도 집계 구조로 버팀
 
@@ -126,6 +127,9 @@
   → Company CFO: System CFO에 초기 자금 결재
   → 실행 (내부 작업 자유 / 외부 액션 승인)
   → 성장 임계값 도달
+       ↓
+  System CFO: 업종 매각가능 여부 + 포트폴리오 전략 기반 A/B 권고
+  → Board 검토 → 위진수 최종 결정 (절대 승인)
        ↓
   A) Exit (매각)          B) Human CEO 전환
   → CFO 수익 수령         → 회사 시스템 내 유지
@@ -220,6 +224,7 @@ System CFO > Company CFO (재무 관련 항상)
 | 자본 소진 | CFO 긴급 보고 → 위진수: 추가 투입 or 종료 |
 | CEO 무한 실패 | CFO 추적 → 은퇴 권고 → 위진수 승인 |
 | CEO 은퇴 + 폐업 동시 | 폐업 항상 우선 처리 |
+| Company 만석 (상한선 도달) | 신규 CEO 생성 중단 → Board 대기 큐 → Exit/종료 발생 시 슬롯 자동 개방 → 재개 (위진수 승인 불필요) |
 
 ---
 

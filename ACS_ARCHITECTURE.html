@@ -124,14 +124,14 @@
         <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap; justify-content:center;">
           <div class="node human">담당 Human</div>
           <div class="node" style="border-color:#f0a500; background:#2a1800; color:#f0a500; font-size:0.8rem;">💳 Financial Gateway<br><span style="font-size:0.72rem; color:#a07030;">(위진수 명의 · 이중화 필요)</span></div>
-          <div class="node" style="border-color:#4caf50; background:#0d2010; color:#4caf50; font-size:0.8rem;">🚪 Exit Channel<br><span style="font-size:0.72rem; color:#306030;">(위진수 승인 플랫폼 목록)</span></div>
+          <div class="node" style="border-color:#4caf50; background:#0d2010; color:#4caf50; font-size:0.8rem;">🚪 Exit Channel<br><span style="font-size:0.72rem; color:#306030;">(위진수 승인 플랫폼 · Board 참조)</span></div>
         </div>
       </div>
       <div class="connector"></div>
       <div class="tier">
         <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; justify-content:center;">
           <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
-            <div class="node system">System Auditor</div>
+            <div class="node system">System Auditor<br><span style="font-size:0.7rem; color:#5070b0;">Hermes 외부 감시 (독립 실행)</span></div>
           </div>
           <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
             <div class="node system">Board</div>
@@ -254,6 +254,8 @@
         <div class="step-arrow">↓</div>
         <div class="step">성장 임계값 도달</div>
         <div class="step-arrow">↓</div>
+        <div class="step" style="background:#1a2535; border:1px solid #3d6fff; color:#90b8ff; font-size:0.78rem;">System CFO: 매각가능 여부 + 포트폴리오 전략 → A/B 권고<br>Board 검토 → 위진수 최종 결정 (절대 승인)</div>
+        <div class="step-arrow">↓</div>
         <div class="branch">
           <div class="branch-item">A) Exit (매각)<br>→ CFO 수익 수령<br>→ 재투자</div>
           <div class="branch-item">B) Human CEO 전환<br>→ 회사 유지<br>→ 인수인계</div>
@@ -373,6 +375,10 @@
       <div class="exception-item">
         <div class="trigger">CEO 은퇴 + 폐업 동시</div>
         <div class="action">폐업 항상 우선 → 폐업 프로세스 → CEO/CFO 종료</div>
+      </div>
+      <div class="exception-item" style="border-left-color:#7c8fff;">
+        <div class="trigger" style="color:#7c8fff;">Company 만석 (상한선 도달)</div>
+        <div class="action">신규 CEO 생성 중단 → Board 대기 큐 → Exit/종료 시 슬롯 자동 개방 → 자동 재개</div>
       </div>
       <div class="exception-item">
         <div class="trigger">위진수 장기 부재</div>
