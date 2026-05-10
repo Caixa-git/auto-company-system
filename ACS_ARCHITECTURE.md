@@ -32,11 +32,21 @@
 ## 2. 구성 요소
 
 ### System Auditor
-- Board, Hermes, 각 회사 전체 상태 감시 (거시적)
+- Board, System CFO, Hermes, 각 회사 전체 상태 감시 (거시적)
 - Company Auditor 보고를 집계만 담당 (직접 감시 X)
-- **Hermes 외부 감시 (Watchdog)**: Hermes와 독립 실행 — Hermes 장애 시 유일한 감지 주체
-- state.md: 이상 목록 집계
+- **핵심 에이전트 Watchdog**: Board·System CFO·Hermes 장애 감지 → 위진수 긴급 알림 (독립 실행)
+- System Auditor 자체 장애 시 → 위진수 직접 알림 (별도 경량 모니터링 프로세스)
+- state.md: 이상 목록 집계, Hermes 상태
 - 확장성: 회사 N개가 돼도 집계 구조로 버팀
+
+### 정보 흐름 원칙
+```
+Company Auditor → Board (직접 보고 — 독립성 유지)
+Company Auditor → System Auditor (집계용 사본 전달)
+System Auditor → Board (거시적 이상 집계 보고)
+CEO/CFO → Board (승인 요청)
+Company CFO → System CFO (재무 보고)
+```
 
 ### Board
 - CEO/CFO 생성·종료·승인·에스컬레이션
@@ -56,8 +66,10 @@
 - 실패 임계값 감지 (논문 기반 공식 — 세부 단계에서 확정)
 - CEO 성과 추적 → 은퇴 권고
 - **포트폴리오 분산 기준 정의** → Board에 전달
-- **Meta-Learning Loop**: 포트폴리오 회고 → 업종별 성공률/평균 회수 기간 갱신 → Board 업종 DB 자동 업데이트
-- 포트폴리오 라운드마다 회고 작성
+- **Meta-Learning Loop**: 포트폴리오 회고 → 업종별 성공률/평균 회수 기간 산출 → Board에 전달
+  (업종 DB 소유권 = Board / System CFO는 데이터 생산만 담당)
+- 포트폴리오 회고 트리거: ① 회사 Exit/종료 발생 시 OR ② 주기적 타임 기반 (기간은 세부 설계에서 확정)
+- 회고 후 Meta-Learning Loop 실행
 - state.md: 자본 현황, 상한선, 성과 추적, 회고 요약
 
 ### Company (N개 병렬)
@@ -96,6 +108,8 @@
 | Stage 4 (Approver) | 낮음·중간·높음 | — | 절대 승인 |
 | Stage 5 (Observer) | 낮음·중간·높음 | — | 절대 승인 |
 
+- **적용 주체: ACS 시스템 전체 단일 단계** (개별 CEO별 X — Board가 1개만 관리)
+- 개별 CEO 신뢰도는 System CFO 성과 지표로 별도 추적
 - 절대 승인: Glasswing 단계 무관, 항상 위진수 직접
 - 단계 상향: Board+CFO 분석 → 위진수 최종 승인
 
@@ -106,6 +120,12 @@
 높음     → 담당 Human 응답 필수 + 대기 모드
 절대 승인 → 위진수 직접 (HOTL 최상위 — Glasswing 단계 무관)
 ```
+
+### 금융 액션 규칙 (Glasswing 단계 무관)
+- 비용이 발생하는 모든 외부 API 호출 → Financial Gateway 경유 필수
+- CEO 직접 결제 수단 접근 불가 (Glasswing Stage 무관)
+- 임계값 이하 소액 → System CFO 자동 승인
+- 임계값 이상 → 위진수 절대 승인
 
 ### 절대 승인 목록 (Glasswing 단계 무관, 항상 위진수 승인)
 - Exit (매각)
@@ -179,13 +199,15 @@
 - 동일 Agent가 계속 운영 (경험 축적)
 - 타 CEO 회고 원본 직접 접근 금지 (Board가 익명 패턴만 업종 DB에 반영)
 - 연속 실패 N회 → System CFO 은퇴 권고 → 위진수 승인
+  - **강제 은퇴**: 에이전트 종료 (새 CEO = 새 에이전트 생성)
+  - **자발적 은퇴** (Human CEO 전환 후): 동일 에이전트 → 다음 창업 시작
 
 ### Company CFO
 - 최초 창업부터 존재 (CEO가 CFO 겸직 X)
 - 역할: 예산 관리, 비용 추적, System CFO 보고
 - state.md: CEO와 별개로 관리
 - 회고: 창업마다 재무 회고 작성
-- CEO 은퇴 시: Company CFO 성과 기반으로 유지(B) or 교체(A) 판단
+- CEO 은퇴 시: System CFO가 Company CFO 성과 분석 → Board 권고 → Board 최종 결정 (유지 B or 교체 A)
 
 ### 결정권 위계
 ```
@@ -201,14 +223,19 @@ System CFO > Company CFO (재무 관련 항상)
 
 ## 7. State 관리
 
+### 원칙
+- state.md 쓰기 = 원자적 갱신 (임시 파일 작성 → 완료 후 교체 — 부분 기록 방지)
+- 회고는 벤처 종료 프로세스의 독립 단계로 분리 (완료 확인 후 다음 단계 진행)
+- 모든 state.md = Hermes와 독립 접근 가능 (Hermes 다운 시에도 상태 보존)
+
 | 구성요소 | state.md 내용 |
 |---------|-------------|
-| System Auditor | 이상 목록 집계 |
-| Board | CEO 포인터, 승인 큐, 업종 목록 |
-| System CFO | 자본 현황, 상한선, 성과 추적, 회고 요약 |
+| System Auditor | 이상 목록 집계, Hermes 상태 |
+| Board | CEO 포인터, 승인 큐, 업종 목록, 포트폴리오 분산 규칙, 대기 큐 |
+| System CFO | 자본 현황, ACS 운영 예산, 상한선, 업종별 성공률, 성과 추적, 회고 요약 |
 | Company state.md | 고객, 계약, 업종, 단계, 자산 (CEO/CFO 교체 시 유지) |
 | CEO state.md | 창업마다 새로 시작, 회고 요약 반영 |
-| Company CFO state.md | 재무 이력, 회고 요약 |
+| Company CFO state.md | 재무 이력, 예산 현황, 회고 요약 |
 
 ---
 
@@ -217,7 +244,9 @@ System CFO > Company CFO (재무 관련 항상)
 | 상황 | 처리 |
 |------|------|
 | DeepSeek API 다운 | Hermes 감지 → 위급도 판단 → 대기 모드 |
-| Hermes 장애 | Circuit Breaker → 에이전트 격리 → 복구 후 재연결 |
+| Hermes 장애 | System Auditor 감지 → 위진수 긴급 알림 → Circuit Breaker 수동 트리거 |
+| Board 장애 | System Auditor 감지 → 위진수 긴급 알림 → 승인 큐 동결 대기 |
+| System CFO 장애 | System Auditor 감지 → 위진수 긴급 알림 → 자본 이동 전면 중단 |
 | Financial Gateway 장애 | System CFO 감지 → 수익 수령 중단 → 위진수 긴급 알림 (이중화 필요) |
 | 담당 Human 부재 | HOTL 위급도 라우팅 |
 | 담당 Human 교체 | Board/CFO state.md → 온보딩 문서 자동 생성 |
