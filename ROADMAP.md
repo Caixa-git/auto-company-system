@@ -61,7 +61,7 @@
 
 | # | 과제 | 의존성 | 완료 기준 |
 |---|------|--------|---------|
-| 1.1.1 | 기본 메시지 스키마 정의 (sender, receiver, type, payload, timestamp, message_id, schema_version) | 없음 | `docs/message-schema.json` v1.0.0 — TC 10/10 통과 |
+| 1.1.1 | 기본 메시지 스키마 정의 (sender, receiver, type, payload, timestamp, message_id, schema_version) | 없음 | JSON 스키마 파일 작성 완료 |
 | 1.1.2 | 메시지 유형 카탈로그 작성 (재무보고, 이상보고, 승인요청, 에스컬레이션, 회고, 포트폴리오리뷰) | 1.1.1 | 유형별 예시 메시지 포함 |
 | 1.1.3 | 에러/예외 메시지 포맷 (에러코드, 위급도, 라우팅 대상) | 1.1.1 | HOTL 위급도와 매핑 완료 |
 

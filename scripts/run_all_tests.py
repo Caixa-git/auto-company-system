@@ -18,6 +18,11 @@ TESTS = {
         "runner": "python3 scripts/validate_message.py",
         "phase": 1,
     },
+    "1.1.2": {
+        "name": "필드 누락/타입 불일치 거부",
+        "runner": "python3 scripts/tc_1_1_2.py",
+        "phase": 1,
+    },
     "1.1.3": {
         "name": "HOTL 위급도 라우팅",
         "runner": "python3 scripts/tc_1_1_3.py",
