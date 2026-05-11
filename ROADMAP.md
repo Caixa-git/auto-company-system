@@ -100,7 +100,7 @@
 - TC-1.2.1~1.2.4: kpi-config.json 기반 개별 실행 30/30 통과
 - Glasswing Stage 0/1 조건표 kpi-config.json에 포함 (연속 성공 3~5회 + 운영 30~90일)
 
-### 1.3 CEO 성향 시스템 ⬜
+### 1.3 CEO 성향 시스템 ✅
 > CEO 행동의 핵심. 세부 설계에서 가장 복잡한 부분.
 > **논문 근거:** Sarasvathy (2001) "Causation and Effectuation" — 장인형/해커형(Effectuation) vs 분석가형(Causation) 구분. Shane & Venkataraman (2000) "The Promise of Entrepreneurship" — 기업가 성향과 업종 선택 상관관계. McCrae & Costa (1987) Big Five Personality Model — 성향 속성 수치화 기준.
 
@@ -116,7 +116,7 @@
 - TC-1.3.3: 장인형 CEO가 Effectuation 우선 업종을, 분석가형이 Causation 우선 업종을 선택하는 편향이 통계적으로 유의 (10회 이상 시뮬레이션)
 - TC-1.3.4: 성향 속성표의 모든 수치가 Big5/Sarasvathy 논문 인용값과 불일치 없음 (인용 검증)
 
-### 1.4 에이전트 메모리 아키텍처 ⬜
+### 1.4 에이전트 메모리 아키텍처 ✅
 > 장기 운영 에이전트의 컨텍스트 관리. CEO 회고 누적, state.md 갱신, 컨텍스트 한도 초과 처리 방법을 먼저 설계해야 구현 단계에서 재설계 불필요.
 > **논문 근거:** MemGPT (Packer et al., 2023) — 운영 체제 방식의 계층적 메모리 관리 (메인 컨텍스트 / 외부 스토리지 / 아카이브). Reflexion (Shinn et al., 2023) — 회고를 통한 에이전트 자기 개선 메커니즘.
 
@@ -130,6 +130,11 @@
 - TC-1.4.1: CEO 컨텍스트가 한도에 도달했을 때 Hermes 압축 트리거 자동 발동, 압축 전후 state.md 핵심 정보 보존율 측정
 - TC-1.4.2: 회고 요약 파일이 다음 창업 시 CEO 프롬프트에 자동 주입됨 (주입 없는 경우 창업 차단)
 - TC-1.4.3: 메인 컨텍스트 / state.md / 아카이브 간 동일 정보의 정합성 유지 확인 (갱신 후 3계층 모두 동기화)
+
+**변경 사항:**
+- docs/agent-memory.md v1.0.0 — 3계층 메모리 구조 + 압축 트리거 조건 + 회고 파이프라인
+- TC-1.4.1~1.4.3: agent-memory.md 기반 개별 실행 18/18 통과
+- 멀티 프로필 메모리 구성도 포함 (Hermes 프로필 분리 대응)
 
 ### Phase 1 통합 테스트
 
