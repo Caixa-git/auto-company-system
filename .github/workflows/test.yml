@@ -2,9 +2,9 @@ name: ACS Test Suite
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop, feature/*]
   pull_request:
-    branches: [master]
+    branches: [master, develop]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
