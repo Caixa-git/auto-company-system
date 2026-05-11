@@ -100,7 +100,7 @@
 - TC-1.2.1~1.2.4: kpi-config.json 기반 개별 실행 30/30 통과
 - Glasswing Stage 0/1 조건표 kpi-config.json에 포함 (연속 성공 3~5회 + 운영 30~90일)
 
-### 1.3 CEO 성향 시스템 ⬜
+### 1.3 CEO 성향 시스템 ✅
 > CEO 행동의 핵심. 세부 설계에서 가장 복잡한 부분.
 > **논문 근거:** Sarasvathy (2001) "Causation and Effectuation" — 장인형/해커형(Effectuation) vs 분석가형(Causation) 구분. Shane & Venkataraman (2000) "The Promise of Entrepreneurship" — 기업가 성향과 업종 선택 상관관계. McCrae & Costa (1987) Big Five Personality Model — 성향 속성 수치화 기준.
 
