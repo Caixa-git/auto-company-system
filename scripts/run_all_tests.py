@@ -18,6 +18,16 @@ TESTS = {
         "runner": "python3 scripts/validate_message.py",
         "phase": 1,
     },
+    "1.1.3": {
+        "name": "HOTL 위급도 라우팅",
+        "runner": "python3 scripts/tc_1_1_3.py",
+        "phase": 1,
+    },
+    "1.1.4": {
+        "name": "에스컬레이션 payload 변조 방지",
+        "runner": "python3 scripts/tc_1_1_4.py",
+        "phase": 1,
+    },
     # 1.1.2 완료 후 추가
     # 1.1.3 완료 후 추가
     # 1.2.x 완료 후 추가
