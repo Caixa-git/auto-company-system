@@ -100,7 +100,7 @@
 - TC-1.2.1~1.2.4: kpi-config.json 기반 개별 실행 30/30 통과
 - Glasswing Stage 0/1 조건표 kpi-config.json에 포함 (연속 성공 3~5회 + 운영 30~90일)
 
-### 1.3 CEO 성향 시스템 ⬜
+### 1.3 CEO 성향 시스템 ✅
 > CEO 행동의 핵심. 세부 설계에서 가장 복잡한 부분.
 > **논문 근거:** Sarasvathy (2001) "Causation and Effectuation" — 장인형/해커형(Effectuation) vs 분석가형(Causation) 구분. Shane & Venkataraman (2000) "The Promise of Entrepreneurship" — 기업가 성향과 업종 선택 상관관계. McCrae & Costa (1987) Big Five Personality Model — 성향 속성 수치화 기준.
 
@@ -116,7 +116,13 @@
 - TC-1.3.3: 장인형 CEO가 Effectuation 우선 업종을, 분석가형이 Causation 우선 업종을 선택하는 편향이 통계적으로 유의 (10회 이상 시뮬레이션)
 - TC-1.3.4: 성향 속성표의 모든 수치가 Big5/Sarasvathy 논문 인용값과 불일치 없음 (인용 검증)
 
-### 1.4 에이전트 메모리 아키텍처 ⬜
+**변경 사항:**
+- docs/ceo-traits.md v1.0.0 — 3성향 Big5 속성표 + 업종 선호도 매트릭스 + 의사결정 가중치
+- TC-1.3.1~1.3.4: ceo-traits.md 기반 개별 실행 34/34 통과
+- 해커형 성향 Big5 정의 추가 (Effectuation 변형 + Lean Startup)
+- 성향 프롬프트 주입 형식 정의
+
+### 1.4 에이전트 메모리 아키텍처 🔄
 > 장기 운영 에이전트의 컨텍스트 관리. CEO 회고 누적, state.md 갱신, 컨텍스트 한도 초과 처리 방법을 먼저 설계해야 구현 단계에서 재설계 불필요.
 > **논문 근거:** MemGPT (Packer et al., 2023) — 운영 체제 방식의 계층적 메모리 관리 (메인 컨텍스트 / 외부 스토리지 / 아카이브). Reflexion (Shinn et al., 2023) — 회고를 통한 에이전트 자기 개선 메커니즘.
 
