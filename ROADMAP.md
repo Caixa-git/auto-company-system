@@ -77,7 +77,7 @@
 - TC-1.1.4 SHA-256 해시 기반 payload 변조 감지 방식 채택 (3개 정상 체인 + 2개 변조 시나리오)
 - GitFlow 전환: develop + feature/1.1 브랜치 생성, 버저닝 규칙 수립 (v0.1.1-alpha.N → v0.1.1)
 
-### 1.2 KPI & 임계값 체계 ⬜
+### 1.2 KPI & 임계값 체계 🔄
 > 논문 기반 수치 확정. 수치 없이 운영 시작 금지 (리스크 4 대응).
 > **논문 근거:** CB Insights (2023) "Top 12 Reasons Startups Fail" — 실패 원인 분포 데이터. Startup Genome Report (2022) — 스타트업 생존율 및 임계값 기준. Kaplan & Lerner (2010) "It Ain't Broke" — VC 성과 지표 및 Exit 배수 분포.
 

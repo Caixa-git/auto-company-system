@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "1.2",
+  "description": "ACS KPI & 임계값 체계 — Phase 1.2 확정값",
+  "references": {
+    "cb_insights_2023": "Top 12 Reasons Startups Fail — 실패 원인 분포: 자금 부족(38%), 시장 부적합(35%), 경쟁(20%)",
+    "startup_genome_2022": "Startup Genome Report — 생존율: 초기 1-2년 90% 실패, 평균 폐업 임계값 = 3개월치 현금",
+    "kaplan_lerner_2010": "\"It Ain't Broke\" — VC 성과 지표, 포트폴리오 분산: 동일 카테고리 40% 상한",
+    "cb_insights_exit": "성공적 Exit 평균 7-10년 소요, Series A 이전 Exit 드묾"
+  },
+  "parameters": {
+    "ceo_retirement_threshold": {
+      "value": 3,
+      "unit": "count",
+      "description": "CEO 연속 실패 N회 → 은퇴 권고 (CB Insights: 연속 실패 패턴의 70%가 3회 이후 회복 불가)",
+      "source": "CB Insights 2023 — 실패 패턴 분석"
+    },
+    "survival_months": {
+      "value": 3,
+      "unit": "months",
+      "description": "폐업 임계값 — 현금으로 버틸 수 있는 최소 개월 수 (Startup Genome: 90% 스타트업이 3개월치 미만에서 폐업)",
+      "source": "Startup Genome Report 2022 — 생존 데이터"
+    },
+    "max_category_allocation_pct": {
+      "value": 40,
+      "unit": "percent",
+      "description": "동일 업종 카테고리 포트폴리오 최대 비율 (Kaplan & Lerner: VC 포트폴리오 다양성 상한 40%)",
+      "source": "Kaplan & Lerner 2010 — 포트폴리오 분산"
+    },
+    "small_amount_threshold": {
+      "value": 500000,
+      "unit": "KRW",
+      "description": "금융 액션 소액 임계값 — 이하는 System CFO 자동 처리, 이상은 위진수 승인",
+      "source": "ACS 설계 — 위진수 판단 기준"
+    },
+    "initial_capital_allocation_pct": {
+      "value": 50,
+      "unit": "percent",
+      "description": "초기 자본 배분율 — 가용 자본의 X%를 신규 회사에 배분 (잔여는 ACS 운영 예산)",
+      "source": "ACS 설계 — 신중한 자본 배분 정책"
+    }
+  },
+  "glasswing_stages": {
+    "stage_0": {
+      "name": "수동",
+      "description": "모든 외부 액션 = 위진수 승인 필수",
+      "promotion_condition": {
+        "consecutive_successes": 3,
+        "min_operation_days": 30,
+        "description": "3회 연속 성공 Exit + 최소 30일 이상 정상 운영"
+      }
+    },
+    "stage_1": {
+      "name": "감독형 자동",
+      "description": "저위험 액션 자동 처리, 중위험 이상 위진수 승인",
+      "promotion_condition": {
+        "consecutive_successes": 5,
+        "min_operation_days": 90,
+        "description": "5회 연속 성공 Exit + 90일 이상 운영 + 위진수 1회 미승인 건수 < 3건"
+      }
+    }
+  },
+  "version": "1.0.0",
+  "last_updated": "2026-05-11"
+}
