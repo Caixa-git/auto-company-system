@@ -77,7 +77,7 @@
 - TC-1.1.4 SHA-256 해시 기반 payload 변조 감지 방식 채택 (3개 정상 체인 + 2개 변조 시나리오)
 - GitFlow 전환: develop + feature/1.1 브랜치 생성, 버저닝 규칙 수립 (v0.1.1-alpha.N → v0.1.1)
 
-### 1.2 KPI & 임계값 체계 🔄
+### 1.2 KPI & 임계값 체계 ✅
 > 논문 기반 수치 확정. 수치 없이 운영 시작 금지 (리스크 4 대응).
 > **논문 근거:** CB Insights (2023) "Top 12 Reasons Startups Fail" — 실패 원인 분포 데이터. Startup Genome Report (2022) — 스타트업 생존율 및 임계값 기준. Kaplan & Lerner (2010) "It Ain't Broke" — VC 성과 지표 및 Exit 배수 분포.
 
@@ -94,6 +94,11 @@
 - TC-1.2.2: 회사 현금 소진율이 폐업 임계값 도달 시 Company CFO 즉각 보고 생성 (지연 없음)
 - TC-1.2.3: 동일 카테고리 포트폴리오 비율 X% 초과 CEO 창업 요청 시 Board 자동 거부 + 재선택 요청
 - TC-1.2.4: 소액 임계값 이하 금융 액션 → System CFO 자동 처리, 이상 → 위진수 승인 요청 분기 정확성
+
+**변경 사항:**
+- docs/kpi-config.json v1.0.0 생성 — 5개 핵심 KPI 수치 (CEO 은퇴 3회, 폐업 3개월, 포트폴리오 40%, 소액 500,000원, 초기 배분 50%)
+- TC-1.2.1~1.2.4: kpi-config.json 기반 개별 실행 30/30 통과
+- Glasswing Stage 0/1 조건표 kpi-config.json에 포함 (연속 성공 3~5회 + 운영 30~90일)
 
 ### 1.3 CEO 성향 시스템 ⬜
 > CEO 행동의 핵심. 세부 설계에서 가장 복잡한 부분.
